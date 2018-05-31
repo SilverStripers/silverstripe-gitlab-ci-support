@@ -146,6 +146,7 @@ class SilverStripeGitlabCiSupport {
 	{
 
 		$branch = $this->run_cmd('git branch | grep \* | cut -d \' \' -f2');
+		$this->writeln('Module\'s branch details: ' . $branch);
 		if(strpos($branch, '(detached') !== false) {
 			$branch = $this->run_cmd('git show -s --pretty=%d HEAD');
 			$this->writeln("Branch Details: {$branch}\n\n");
