@@ -145,23 +145,36 @@ class SilverStripeGitlabCiSupport {
 	public function getModuleVersion()
 	{
 
-		$branch = $this->run_cmd('git branch | grep \* | cut -d \' \' -f2');
-		$this->writeln('Module\'s branch details: ' . $branch);
-		if(strpos($branch, '(detached') !== false) {
-			$branch = $this->run_cmd('git show -s --pretty=%d HEAD');
-			$this->writeln("Branch Details: {$branch}\n\n");
+		// git show -s --pretty=%d HEAD
+		$branchDetails = $this->run_cmd('git show -s --pretty=%d HEAD');
+		$branchDetails = str_replace('(', '', str_replace(')', '', $branchDetails));
+		$parts = explode(',', $branchDetails);
+		$branch = '';
+		if(isset($parts[1])) {
+			$branch = trim($parts[1]);
+		}
+		else if (isset($parts[0])) {
+			$branch = trim($parts[0]);
+		}
+		$branch = str_replace('origin/', '', $branch);
+		if(empty($branch)) {
+			$branch = $this->run_cmd('git branch | grep \* | cut -d \' \' -f2');
+			$this->writeln('Module\'s branch details: ' . $branch);
+			if (strpos($branch, '(detached') !== false) {
+				$branch = $this->run_cmd('git show -s --pretty=%d HEAD');
+				$this->writeln("Branch Details: {$branch}\n\n");
 
-			$branch = str_replace('(', '', str_replace(')', '', $branch));
-			$parts = explode(',', $branch);
+				$branch = str_replace('(', '', str_replace(')', '', $branch));
+				$parts = explode(',', $branch);
 
-			if(isset($parts[1])) {
-				$branch = trim($parts[1]);
+				if (isset($parts[1])) {
+					$branch = trim($parts[1]);
+				} else if (isset($parts[0])) {
+					$branch = trim($parts[0]);
+				}
+				$branch = str_replace('origin/', '', $branch);
+				// $branch = str_replace('(HEAD, origin/', '', str_replace(')', '', $branch));
 			}
-			else if(isset($parts[0])) {
-				$branch = trim($parts[0]);
-			}
-			$branch = str_replace('origin/', '', $branch);
-			// $branch = str_replace('(HEAD, origin/', '', str_replace(')', '', $branch));
 		}
 		return $branch;
 	}
